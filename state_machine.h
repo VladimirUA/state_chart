@@ -26,24 +26,31 @@ struct turn_on  : sc::event< turn_on > {};
 struct start    : sc::event< start > {};
 struct finish   : sc::event< finish > {};
 
+/**
+ * Some template magic to merge common reactions for all states and derived
+ * @tparam base_transitions - list of reactions to be common for all states
+ */
+
+template<class ...base_transitions>
+struct transitions_list : mpl::list<base_transitions...> {
+    template <class ...derived_transitions>
+    using merge = transitions_list<base_transitions..., derived_transitions...>;
+};
+
+typedef transitions_list<sc::transition<turn_off, off_state>> base_transtions;
+
 // States:
 struct off_state : sc::simple_state<off_state, state_machine> {
   off_state () { std::cout << "In OFF state" << std::endl; }
-  typedef sc::transition<turn_on, on_state> reactions;
+  typedef mpl::list< sc::transition<turn_on, on_state>> reactions;
 };
 
 struct on_state : sc::simple_state<on_state, state_machine> {
   on_state () { std::cout << "In ON state" << std::endl; }
-  typedef mpl::list<
-      sc::transition<turn_off, off_state>
-    , sc::transition<start, active_state>
-    > reactions;
+  typedef base_transtions::merge< sc::transition<start, active_state> > reactions; 
 };
 
 struct active_state : sc::simple_state<active_state, state_machine> {
   active_state () { std::cout << "In ACTIVE state" << std::endl; }
-  typedef mpl::list<
-      sc::transition<turn_off, off_state>
-    , sc::transition<finish, on_state>
-    > reactions;
+  typedef base_transtions::merge< sc::transition<finish, on_state> > reactions;
 };
