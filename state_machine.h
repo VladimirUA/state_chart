@@ -67,7 +67,7 @@ struct on_state : base_state<on_state, state_machine> {
   on_state () { std::cout << "In ON state" << std::endl; }
   typedef base_reactions::merge<sc::transition<start, active_state>> reactions;
   
-  sc::result react_on_watchdog(const watchdog& event) {
+  sc::result react_on_watchdog(const watchdog& event) override final {
     std::cout << "on_state wathdog react sequence: " << event.sequence << std::endl;
     return discard_event();
   };
@@ -77,7 +77,7 @@ struct active_state : base_state<active_state, state_machine> {
   active_state () { std::cout << "In ACTIVE state" << std::endl; }
   typedef base_reactions::merge<sc::transition<finish, on_state> > reactions; 
 
-  sc::result react_on_watchdog(const watchdog& event) {
+  sc::result react_on_watchdog(const watchdog& event) override final {
     std::cout << "active_state wathdog react sequence: " << event.sequence << std::endl;
     return discard_event();
   };
